@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Snake Game</title>
+<style>
+  body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    background-color: #f2d9e6; /* Cor de fundo rosa claro */
+    font-family: Arial, sans-serif;
+  }
+  canvas {
+    border: 2px solid #ff6b9e; /* Cor da borda rosa mais escura */
+    background-color: #ffd6e8; /* Cor de fundo rosa mais claro */
+  }
+  p {
+    color: #ff6b9e; /* Cor do texto rosa mais escura */
+    font-size: 24px;
+    margin-top: 10px;
+  }
+  button {
+    margin-top: 10px;
+    padding: 10px 20px;
+    border: none;
+    background-color: #ff6b9e; /* Cor de fundo rosa mais escura */
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 5px;
+  }
+</style>
+</head>
+<body>
+<canvas id="gameCanvas" width="600" height="600"></canvas>
+<p>Score: <span id="score">0</span></p>
+<button id="startButton">Start</button>
+<script>
+  const canvas = document.getElementById("gameCanvas");
+  const ctx = canvas.getContext("2d");
+  const scoreElement = document.getElementById("score");
+
+  const gridSize = 30;
+  let snake = [{ x: 5, y: 5 }];
+  let food = { x: 10, y: 10 };
+  let direction = "right";
+  let score = 0;
+
+  // Variáveis de obstáculos
+  let obstacles = [{ x: 15, y: 10 }, { x: 20, y: 5 }];
+
+  const pigImage = new Image();
+  pigImage.src = "Machovka-Pink-pig.svg";
+
+  let gameLoopInterval;
+
+  function drawSnake() {
+    snake.forEach(segment => {
+      ctx.drawImage(pigImage, segment.x * gridSize, segment.y * gridSize, gridSize, gridSize);
+    });
+  }
+
+  function drawFood() {
+    ctx.fillStyle = "#ff6b9e";
+    ctx.fillRect(food.x * gridSize, food.y * gridSize, gridSize, gridSize);
+  }
+
+  function drawObstacles() {
+    ctx.fillStyle = "#4a4a4a";
+    obstacles.forEach(obstacle => {
+      ctx.fillRect(obstacle.x * gridSize, obstacle.y * gridSize, gridSize, gridSize);
+    });
+  }
+
+  function update() {
+    const head = { x: snake[0].x, y: snake[0].y };
+
+    if (direction === "right") head.x++;
+    else if (direction === "left") head.x--;
+    else if (direction === "up") head.y--;
+    else if (direction === "down") head.y++;
+
+    snake.unshift(head);
+
+    if (head.x === food.x && head.y === food.y) {
+      score++;
+      food = {
+        x: Math.floor(Math.random() * canvas.width / gridSize),
+        y: Math.floor(Math.random() * canvas.height / gridSize)
+      };
+    } else {
+      snake.pop();
+    }
+
+    // Colisão com obstáculos
+    if (obstacles.some(obstacle => obstacle.x === head.x && obstacle.y === head.y)) {
+      clearInterval(gameLoopInterval);
+      alert("Game Over! Your score: " + score);
+    }
+
+    if (
+      head.x < 0 ||
+      head.x >= canvas.width / gridSize ||
+      head.y < 0 ||
+      head.y >= canvas.height / gridSize
+    ) {
+      clearInterval(gameLoopInterval);
+      alert("Game Over! Your score: " + score);
+    }
+
+    scoreElement.textContent = score;
+  }
+
+  document.addEventListener("keydown", event => {
+    if (event.key === "ArrowRight" && direction !== "left") direction = "right";
+    else if (event.key === "ArrowLeft" && direction !== "right") direction = "left";
+    else if (event.key === "ArrowUp" && direction !== "down") direction = "up";
+    else if (event.key === "ArrowDown" && direction !== "up") direction = "down";
+  });
+
+  const gameInterval = 150;
+
+  document.getElementById("startButton").addEventListener("click", () => {
+    gameLoopInterval = setInterval(gameLoop, gameInterval);
+    startButton.disabled = true;
+  });
+
+  function gameLoop() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    update();
+    drawSnake();
+    drawFood();
+    drawObstacles();
+  }
+</script>
+</body>
+</html>
